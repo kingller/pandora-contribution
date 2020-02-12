@@ -7,3 +7,9 @@
 ```bash
 npm i -D pandora-contribution
 ``` 
+
+## Usage
+
+```bash
+node ./node_modules/.bin/contribution
+``` 
