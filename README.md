@@ -1,2 +1,9 @@
 # pandora-contribution
-生成代码贡献值数据
+用Nodejs执行Git命令生成今年和去年代码贡献值数据
+
+
+## Install
+
+```bash
+npm i -D pandora-contribution
+``` 

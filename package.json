@@ -1,0 +1,41 @@
+{
+    "name": "pandora-contribution",
+    "version": "1.0.0",
+    "description": "生成贡献值数据",
+    "keywords": [
+        "contribution",
+        "node",
+        "pandora"
+    ],
+    "homepage": "https://github.com/kingller/pandora-contribution",
+    "bugs": {
+        "url": "https://github.com/kingller/pandora-contribution/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kingller/pandora-contribution.git"
+    },
+    "license": "MIT",
+    "author": {
+        "name": "Kingller Tang",
+        "url": "https://github.com/kingller"
+    },
+    "main": "./bin/index.js",
+    "types": "./bin/index.d.ts",
+    "bin": {
+        "contribution": "./bin/index.js"
+    },
+    "scripts": {
+        "build": "tsc lib/index.ts -d --outDir bin --lib es2015"
+    },
+    "dependencies": {
+        "lodash": "^4.17.15"
+    },
+    "devDependencies": {
+        "@types/request-promise-native": "^1.0.17",
+        "typescript": "^3.7.3"
+    },
+    "engines": {
+        "node": ">=7.6.0"
+    }
+}
