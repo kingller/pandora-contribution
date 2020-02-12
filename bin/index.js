@@ -123,7 +123,7 @@ function writeContributionFile(outputPath, source) {
                     if (!fs.existsSync(outputPath)) {
                         fs.mkdirSync(outputPath);
                     }
-                    return [4 /*yield*/, util.promisify(fs.writeFile)(path.join(outputPath, "contribution.js"), source)];
+                    return [4 /*yield*/, util.promisify(fs.writeFile)(path.join(outputPath, "contribution.json"), source)];
                 case 1:
                     _a.sent();
                     return [2 /*return*/];
@@ -142,7 +142,7 @@ function contribute() {
                     return [4 /*yield*/, getContribution()];
                 case 1:
                     contributionInfo = _a.sent();
-                    return [4 /*yield*/, writeContributionFile(OUTPUT_PATH || PROCESS_PATH, "module.exports = " + JSON.stringify(contributionInfo, null, 4))];
+                    return [4 /*yield*/, writeContributionFile(OUTPUT_PATH || PROCESS_PATH, JSON.stringify(contributionInfo, null, 2))];
                 case 2:
                     _a.sent();
                     success("生成贡献值成功");

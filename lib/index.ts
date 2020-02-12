@@ -77,7 +77,7 @@ async function writeContributionFile(outputPath, source) {
     fs.mkdirSync(outputPath);
   }
   await util.promisify(fs.writeFile)(
-    path.join(outputPath, "contribution.js"),
+    path.join(outputPath, "contribution.json"),
     source
   );
 }
@@ -89,7 +89,7 @@ async function contribute() {
     const contributionInfo = await getContribution();
     await writeContributionFile(
       OUTPUT_PATH || PROCESS_PATH,
-      "module.exports = " + JSON.stringify(contributionInfo, null, 4)
+      JSON.stringify(contributionInfo, null, 2)
     );
 
     success("生成贡献值成功");
