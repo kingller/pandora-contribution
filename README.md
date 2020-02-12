@@ -13,3 +13,7 @@ npm i -D pandora-contribution
 ```bash
 node ./node_modules/.bin/contribution
 ``` 
+
+## Output
+
+文件`contribution.json`
