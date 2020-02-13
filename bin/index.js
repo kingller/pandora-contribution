@@ -47,6 +47,15 @@ var OUTPUT_PATH = process.argv[2];
 var success = function (msg) { return console.warn("\u001B[32mSUCCESS: " + msg + "\u001B[39m"); };
 var error = function (msg) { return console.error("\u001B[31mERROR: " + msg + "\u001B[39m"); };
 var contributionCommand = "git log --since='<%= startDate %>' --until='<%= endDate %>' --format='%aN' | sort -u | while read name; do echo \"$name\"; git log --since='<%= startDate %>' --until='<%= endDate %>' --author=\"$name\" --numstat --pretty=tformat: --no-merges | awk '{ add += $1; subs += $2; loc += $1 - $2 } END { printf \"added: %s, removed: %s, total: %s\\n\", add, subs, loc }' -; done";
+function isExits(path) {
+    return fs.existsSync(path);
+}
+function getOutputPath() {
+    return OUTPUT_PATH || PROCESS_PATH;
+}
+function getOutputFilePath(year) {
+    return path.join(getOutputPath(), year + ".json");
+}
 function getContributionValue(contributionStr, propertyName) {
     var matches = contributionStr.match(new RegExp(propertyName + ":\\s*(\\d+)", "i"));
     if (matches) {
@@ -54,9 +63,28 @@ function getContributionValue(contributionStr, propertyName) {
     }
     return 0;
 }
-function getYearContribution(year) {
+function writeContributionFile(source, year) {
     return __awaiter(this, void 0, void 0, function () {
-        var pandoraContributionInfo, contributions, stdout, outputArray, i, contributionStr, personContribution;
+        var outputPath;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    outputPath = getOutputPath();
+                    if (!isExits(outputPath)) {
+                        fs.mkdirSync(outputPath);
+                    }
+                    return [4 /*yield*/, util.promisify(fs.writeFile)(getOutputFilePath(year), source)];
+                case 1:
+                    _a.sent();
+                    console.log("\u751F\u6210\u8D21\u732E\u503C\u6587\u4EF6\uFF1A" + year + ".json");
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function generateYearContribution(year) {
+    return __awaiter(this, void 0, void 0, function () {
+        var pandoraContributionInfo, contributions, stdout, outputArray, i, contributionStr, personContribution, now, createDate, data, source;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, exec(_.template(contributionCommand)({
@@ -87,72 +115,99 @@ function getYearContribution(year) {
                             }
                         }
                     }
-                    return [2 /*return*/, contributions];
-            }
-        });
-    });
-}
-function getContribution() {
-    return __awaiter(this, void 0, void 0, function () {
-        var today, year, pandoraContributionInfo, pandoraLastYearContributionInfo;
-        var _a;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0:
-                    today = new Date();
-                    year = today.getFullYear();
-                    return [4 /*yield*/, getYearContribution(year)];
-                case 1:
-                    pandoraContributionInfo = _b.sent();
-                    return [4 /*yield*/, getYearContribution(year - 1)];
+                    now = new Date();
+                    createDate = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
+                    data = {
+                        createDate: createDate,
+                        data: contributions
+                    };
+                    source = JSON.stringify(data, null, 2);
+                    return [4 /*yield*/, writeContributionFile(source, year)];
                 case 2:
-                    pandoraLastYearContributionInfo = _b.sent();
-                    return [2 /*return*/, (_a = {},
-                            _a[year.toString()] = pandoraContributionInfo,
-                            _a[(year - 1).toString()] = pandoraLastYearContributionInfo,
-                            _a)];
-            }
-        });
-    });
-}
-function writeContributionFile(outputPath, source) {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    if (!fs.existsSync(outputPath)) {
-                        fs.mkdirSync(outputPath);
-                    }
-                    return [4 /*yield*/, util.promisify(fs.writeFile)(path.join(outputPath, "contribution.json"), source)];
-                case 1:
                     _a.sent();
                     return [2 /*return*/];
             }
         });
     });
 }
-function contribute() {
+function isNeedGenerate(year) {
     return __awaiter(this, void 0, void 0, function () {
-        var contributionInfo, e_1;
+        var filePath, fileContent, fileContentStr, data, yearMatches, createYear;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 3, , 4]);
-                    console.time("Total time");
-                    return [4 /*yield*/, getContribution()];
+                    filePath = getOutputFilePath(year);
+                    if (!isExits(filePath)) {
+                        return [2 /*return*/, true];
+                    }
+                    return [4 /*yield*/, util.promisify(fs.readFile)(filePath)];
                 case 1:
-                    contributionInfo = _a.sent();
-                    return [4 /*yield*/, writeContributionFile(OUTPUT_PATH || PROCESS_PATH, JSON.stringify(contributionInfo, null, 2))];
+                    fileContent = _a.sent();
+                    if (fileContent) {
+                        fileContentStr = fileContent.toString();
+                        if (fileContentStr) {
+                            data = JSON.parse(fileContentStr);
+                            // 判断创建日期，创建日期晚于该年时说明创建时已是历史数据，无需再次生成
+                            if (data.createDate) {
+                                yearMatches = data.createDate.match(/^\d+/);
+                                if (yearMatches) {
+                                    createYear = parseInt(yearMatches[0]);
+                                    if (createYear > year) {
+                                        return [2 /*return*/, false];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return [2 /*return*/, true];
+            }
+        });
+    });
+}
+function generateContribution() {
+    return __awaiter(this, void 0, void 0, function () {
+        var today, year, lastYear, needGenerate;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    today = new Date();
+                    year = today.getFullYear();
+                    return [4 /*yield*/, generateYearContribution(year)];
+                case 1:
+                    _a.sent();
+                    lastYear = year - 1;
+                    return [4 /*yield*/, isNeedGenerate(lastYear)];
                 case 2:
+                    needGenerate = _a.sent();
+                    if (!needGenerate) return [3 /*break*/, 4];
+                    return [4 /*yield*/, generateYearContribution(lastYear)];
+                case 3:
+                    _a.sent();
+                    _a.label = 4;
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
+function contribute() {
+    return __awaiter(this, void 0, void 0, function () {
+        var e_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    console.time("Total time");
+                    return [4 /*yield*/, generateContribution()];
+                case 1:
                     _a.sent();
                     success("生成贡献值成功");
                     console.timeEnd("Total time");
-                    return [3 /*break*/, 4];
-                case 3:
+                    return [3 /*break*/, 3];
+                case 2:
                     e_1 = _a.sent();
                     error("\u751F\u6210\u8D21\u732E\u503C\u5931\u8D25\n" + e_1);
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
             }
         });
     });

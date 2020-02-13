@@ -6,6 +6,9 @@
 <font color=red><strong>删除</strong></font>
 
 
+# 1.2.0
+1. <font color=orange>修改</font> 输出文件改为按年份生成`${year}.json`，并优化只生成一次去年历史数据
+
 
 # 1.1.0
 1. <font color=orange>修改</font> 输出文件改为`contribution.json`

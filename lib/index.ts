@@ -14,6 +14,30 @@ const error = msg => console.error(`\u001b[31mERROR: ${msg}\u001b[39m`);
 
 const contributionCommand = `git log --since='<%= startDate %>' --until='<%= endDate %>' --format='%aN' | sort -u | while read name; do echo "$name"; git log --since='<%= startDate %>' --until='<%= endDate %>' --author="$name" --numstat --pretty=tformat: --no-merges | awk '{ add += $1; subs += $2; loc += $1 - $2 } END { printf "added: %s, removed: %s, total: %s\\n", add, subs, loc }' -; done`;
 
+interface IUserContribution {
+  name: string;
+  added: number;
+  removed: number;
+  total: number;
+}
+
+interface IData {
+  createDate: string;
+  data: IUserContribution[];
+}
+
+function isExits(path: string) {
+  return fs.existsSync(path)
+}
+
+function getOutputPath() {
+  return OUTPUT_PATH || PROCESS_PATH;
+}
+
+function getOutputFilePath(year: number) {
+  return path.join(getOutputPath(), `${year}.json`);
+}
+
 function getContributionValue(
   contributionStr: string,
   propertyName: string
@@ -27,14 +51,26 @@ function getContributionValue(
   return 0;
 }
 
-async function getYearContribution(year: number) {
+async function writeContributionFile(source: string, year: number) {
+  const outputPath = getOutputPath();
+  if (!isExits(outputPath)) {
+    fs.mkdirSync(outputPath);
+  }
+  await util.promisify(fs.writeFile)(
+    getOutputFilePath(year),
+    source
+  );
+  console.log(`生成贡献值文件：${year}.json`);
+}
+
+async function generateYearContribution(year: number) {
   const pandoraContributionInfo = await exec(
     _.template(contributionCommand)({
       startDate: `${year}-01-01`,
       endDate: `${year}-12-31`
     })
   );
-  let contributions = [];
+  let contributions: IUserContribution[] = [];
   if (pandoraContributionInfo.stdout) {
     let { stdout } = pandoraContributionInfo;
     let outputArray = stdout.split("\n");
@@ -43,7 +79,7 @@ async function getYearContribution(year: number) {
         break;
       }
       const contributionStr = outputArray[i + 1];
-      const personContribution = {
+      const personContribution: IUserContribution = {
         name: outputArray[i],
         added: getContributionValue(contributionStr, "added"),
         removed: getContributionValue(contributionStr, "removed"),
@@ -58,39 +94,58 @@ async function getYearContribution(year: number) {
       }
     }
   }
-  return contributions;
+  const now = new Date();
+  const createDate = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
+  const data: IData = {
+    createDate,
+    data: contributions,
+  };
+  const source = JSON.stringify(data, null, 2);
+  await writeContributionFile(source, year);
 }
 
-async function getContribution() {
+async function isNeedGenerate(year: number): Promise<boolean> {
+  const filePath = getOutputFilePath(year);
+  if (!isExits(filePath)) {
+    return true;
+  }
+  const fileContent = await util.promisify(fs.readFile)(filePath);
+  if (fileContent) {
+    const fileContentStr = fileContent.toString();
+    if (fileContentStr) {
+      let data = JSON.parse(fileContentStr) as IData;
+      // 判断创建日期，创建日期晚于该年时说明创建时已是历史数据，无需再次生成
+      if(data.createDate) {
+        const yearMatches = data.createDate.match(/^\d+/);
+        if (yearMatches) {
+          const createYear = parseInt(yearMatches[0]);
+          if (createYear > year) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return true;
+}
+
+async function generateContribution() {
   const today = new Date();
   const year = today.getFullYear();
-  const pandoraContributionInfo = await getYearContribution(year);
-  const pandoraLastYearContributionInfo = await getYearContribution(year - 1);
-  return {
-    [year.toString()]: pandoraContributionInfo,
-    [(year - 1).toString()]: pandoraLastYearContributionInfo
-  };
-}
+  await generateYearContribution(year);
 
-async function writeContributionFile(outputPath, source) {
-  if (!fs.existsSync(outputPath)) {
-    fs.mkdirSync(outputPath);
+  const lastYear = year - 1;
+  const needGenerate = await isNeedGenerate(lastYear);
+  if  (needGenerate) {
+    await generateYearContribution(lastYear);
   }
-  await util.promisify(fs.writeFile)(
-    path.join(outputPath, "contribution.json"),
-    source
-  );
 }
 
 async function contribute() {
   try {
     console.time("Total time");
 
-    const contributionInfo = await getContribution();
-    await writeContributionFile(
-      OUTPUT_PATH || PROCESS_PATH,
-      JSON.stringify(contributionInfo, null, 2)
-    );
+    await generateContribution();
 
     success("生成贡献值成功");
     console.timeEnd("Total time");
