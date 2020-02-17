@@ -14,7 +14,7 @@ npm i -D pandora-contribution
 node ./node_modules/.bin/contribution --outDir ./contribution
 ``` 
 
-命令`--output`后为输出数据文件生成地址
+命令`--outDir`后为输出数据文件生成地址
 
 
 ## Output
