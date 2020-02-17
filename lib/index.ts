@@ -9,6 +9,7 @@ const exec = util.promisify(require("child_process").exec);
 const PROCESS_PATH = process.cwd();
 const argv = require('yargs').argv;
 const OUTPUT_PATH = argv.outDir;
+const IS_LOG = argv.log;
 
 const success = msg => console.warn(`\u001b[32mSUCCESS: ${msg}\u001b[39m`);
 const error = msg => console.error(`\u001b[31mERROR: ${msg}\u001b[39m`);
@@ -65,14 +66,19 @@ async function writeContributionFile(source: string, year: number) {
 }
 
 async function generateYearContribution(year: number) {
-  const pandoraContributionInfo = await exec(
-    _.template(contributionCommand)({
-      startDate: `${year}-01-01`,
-      endDate: `${year}-12-31`
-    })
-  );
+  const command = _.template(contributionCommand)({
+    startDate: `${year}-01-01`,
+    endDate: `${year}-12-31`
+  });
+  if (IS_LOG) {
+    console.log(command);
+  }
+  const pandoraContributionInfo = await exec(command);
   let contributions: IUserContribution[] = [];
   if (pandoraContributionInfo.stdout) {
+    if (IS_LOG) {
+      console.log(pandoraContributionInfo.stdout);
+    }
     let { stdout } = pandoraContributionInfo;
     let outputArray = stdout.split("\n");
     for (let i = 0; i < outputArray.length; i = i + 2) {

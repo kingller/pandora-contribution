@@ -45,6 +45,7 @@ var exec = util.promisify(require("child_process").exec);
 var PROCESS_PATH = process.cwd();
 var argv = require('yargs').argv;
 var OUTPUT_PATH = argv.outDir;
+var IS_LOG = argv.log;
 var success = function (msg) { return console.warn("\u001B[32mSUCCESS: " + msg + "\u001B[39m"); };
 var error = function (msg) { return console.error("\u001B[31mERROR: " + msg + "\u001B[39m"); };
 var contributionCommand = "git log --since='<%= startDate %>' --until='<%= endDate %>' --format='%aN' | sort -u | while read name; do echo \"$name\"; git log --since='<%= startDate %>' --until='<%= endDate %>' --author=\"$name\" --numstat --pretty=tformat: --no-merges | awk '{ add += $1; subs += $2; loc += $1 - $2 } END { printf \"added: %s, removed: %s, total: %s\\n\", add, subs, loc }' -; done";
@@ -85,17 +86,25 @@ function writeContributionFile(source, year) {
 }
 function generateYearContribution(year) {
     return __awaiter(this, void 0, void 0, function () {
-        var pandoraContributionInfo, contributions, stdout, outputArray, i, contributionStr, personContribution, now, createDate, data, source;
+        var command, pandoraContributionInfo, contributions, stdout, outputArray, i, contributionStr, personContribution, now, createDate, data, source;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, exec(_.template(contributionCommand)({
+                case 0:
+                    command = _.template(contributionCommand)({
                         startDate: year + "-01-01",
                         endDate: year + "-12-31"
-                    }))];
+                    });
+                    if (IS_LOG) {
+                        console.log(command);
+                    }
+                    return [4 /*yield*/, exec(command)];
                 case 1:
                     pandoraContributionInfo = _a.sent();
                     contributions = [];
                     if (pandoraContributionInfo.stdout) {
+                        if (IS_LOG) {
+                            console.log(pandoraContributionInfo.stdout);
+                        }
                         stdout = pandoraContributionInfo.stdout;
                         outputArray = stdout.split("\n");
                         for (i = 0; i < outputArray.length; i = i + 2) {

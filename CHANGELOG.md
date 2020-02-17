@@ -6,6 +6,10 @@
 <font color=red><strong>删除</strong></font>
 
 
+# 2.0.1
+1. <font color=green>新增</font> 命令参数`--log`打印日志
+
+
 # 2.0.0
 1. <font color=orange>修改</font> 输出文件地址命令改用`--outDir`设置
 
