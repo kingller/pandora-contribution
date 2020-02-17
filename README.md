@@ -11,10 +11,10 @@ npm i -D pandora-contribution
 ## Usage
 
 ```bash
-node ./node_modules/.bin/contribution ./contribution
+node ./node_modules/.bin/contribution --outDir ./contribution
 ``` 
 
-命令后参数为输出数据文件生成地址
+命令`--output`后为输出数据文件生成地址
 
 
 ## Output

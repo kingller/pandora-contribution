@@ -7,7 +7,8 @@ import * as _ from "lodash";
 const exec = util.promisify(require("child_process").exec);
 
 const PROCESS_PATH = process.cwd();
-const OUTPUT_PATH = process.argv[2];
+const argv = require('yargs').argv;
+const OUTPUT_PATH = argv.outDir;
 
 const success = msg => console.warn(`\u001b[32mSUCCESS: ${msg}\u001b[39m`);
 const error = msg => console.error(`\u001b[31mERROR: ${msg}\u001b[39m`);
