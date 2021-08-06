@@ -6,6 +6,10 @@
 <font color=red><strong>删除</strong></font>
 
 
+# 2.0.2
+1. <font color=red>修复</font> 结束日期加上时间`23:59:59`
+
+
 # 2.0.1
 1. <font color=green>新增</font> 命令参数`--log`打印日志
 

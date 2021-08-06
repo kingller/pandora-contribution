@@ -92,7 +92,7 @@ function generateYearContribution(year) {
                 case 0:
                     command = _.template(contributionCommand)({
                         startDate: year + "-01-01",
-                        endDate: year + "-12-31"
+                        endDate: year + "-12-31 23:59:59"
                     });
                     if (IS_LOG) {
                         console.log(command);
