@@ -12,10 +12,12 @@ npm i -D pandora-contribution
 ## Usage
 
 ```bash
-node ./node_modules/.bin/contribution --outDir ./contribution
+node ./node_modules/.bin/contribution --outDir ./contribution -- ./
 ``` 
 
-命令`--outDir`后为输出数据文件生成地址
+命令 `--outDir` 后为输出数据文件生成地址
+
+命令 `[--] <path>` 匹配指定路径的文件生成的提交。当出现混淆时，路径可能需要加上前缀 `--` 以将它们区分。可选参数。
 
 ### log
 

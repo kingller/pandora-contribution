@@ -41,14 +41,15 @@ var fs = require("fs");
 var util = require("util");
 var path = require("path");
 var _ = require("lodash");
-var exec = util.promisify(require("child_process").exec);
+var exec = util.promisify(require('child_process').exec);
 var PROCESS_PATH = process.cwd();
 var argv = require('yargs').argv;
 var OUTPUT_PATH = argv.outDir;
 var IS_LOG = argv.log;
+var SEARCH_PATH = argv._.map(function (p) { return "'" + p + "'"; }).join(' ');
 var success = function (msg) { return console.warn("\u001B[32mSUCCESS: " + msg + "\u001B[39m"); };
 var error = function (msg) { return console.error("\u001B[31mERROR: " + msg + "\u001B[39m"); };
-var contributionCommand = "git log --since='<%= startDate %>' --until='<%= endDate %>' --format='%aN' | sort -u | while read name; do echo \"$name\"; git log --since='<%= startDate %>' --until='<%= endDate %>' --author=\"$name\" --numstat --pretty=tformat: --no-merges | awk '{ add += $1; subs += $2; loc += $1 - $2 } END { printf \"added: %s, removed: %s, total: %s\\n\", add, subs, loc }' -; done";
+var contributionCommand = "git log --since='<%= startDate %>' --until='<%= endDate %>' --format='%aN' | sort -u | while read name; do echo \"$name\"; git log --since='<%= startDate %>' --until='<%= endDate %>' --author=\"$name\" --numstat --pretty=tformat: --no-merges " + (SEARCH_PATH ? '-- ' + SEARCH_PATH : '') + " | awk '{ add += $1; subs += $2; loc += $1 - $2 } END { printf \"added: %s, removed: %s, total: %s\\n\", add, subs, loc }' -; done";
 function isExits(path) {
     return fs.existsSync(path);
 }
@@ -59,7 +60,7 @@ function getOutputFilePath(year) {
     return path.join(getOutputPath(), year + ".json");
 }
 function getContributionValue(contributionStr, propertyName) {
-    var matches = contributionStr.match(new RegExp(propertyName + ":\\s*(\\d+)", "i"));
+    var matches = contributionStr.match(new RegExp(propertyName + ":\\s*(\\d+)", 'i'));
     if (matches) {
         return parseInt(matches[1]);
     }
@@ -106,7 +107,7 @@ function generateYearContribution(year) {
                             console.log(pandoraContributionInfo.stdout);
                         }
                         stdout = pandoraContributionInfo.stdout;
-                        outputArray = stdout.split("\n");
+                        outputArray = stdout.split('\n');
                         for (i = 0; i < outputArray.length; i = i + 2) {
                             if (i + 1 >= outputArray.length) {
                                 break;
@@ -114,13 +115,11 @@ function generateYearContribution(year) {
                             contributionStr = outputArray[i + 1];
                             personContribution = {
                                 name: outputArray[i],
-                                added: getContributionValue(contributionStr, "added"),
-                                removed: getContributionValue(contributionStr, "removed"),
-                                total: getContributionValue(contributionStr, "total")
+                                added: getContributionValue(contributionStr, 'added'),
+                                removed: getContributionValue(contributionStr, 'removed'),
+                                total: getContributionValue(contributionStr, 'total')
                             };
-                            if (personContribution.added ||
-                                personContribution.removed ||
-                                personContribution.total) {
+                            if (personContribution.added || personContribution.removed || personContribution.total) {
                                 contributions.push(personContribution);
                             }
                         }
@@ -206,12 +205,12 @@ function contribute() {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    console.time("Total time");
+                    console.time('Total time');
                     return [4 /*yield*/, generateContribution()];
                 case 1:
                     _a.sent();
-                    success("生成贡献值成功");
-                    console.timeEnd("Total time");
+                    success('生成贡献值成功');
+                    console.timeEnd('Total time');
                     return [3 /*break*/, 3];
                 case 2:
                     e_1 = _a.sent();

@@ -6,6 +6,10 @@
 <font color=red><strong>删除</strong></font>
 
 
+# 2.1.0
+1. <font color=green>新增</font> 支持指定匹配的路径 `[--] <path>`。
+
+
 # 2.0.2
 1. <font color=red>修复</font> 结束日期加上时间`23:59:59`
 
