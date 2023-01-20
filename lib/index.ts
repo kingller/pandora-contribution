@@ -17,7 +17,7 @@ const error = (msg) => console.error(`\u001b[31mERROR: ${msg}\u001b[39m`);
 
 const contributionCommand = `git log --since='<%= startDate %>' --until='<%= endDate %>' --format='%aN' | sort -u | while read name; do echo "$name"; git log --since='<%= startDate %>' --until='<%= endDate %>' --author="$name" --numstat --pretty=tformat: --no-merges ${
     SEARCH_PATH ? '-- ' + SEARCH_PATH : ''
-} | awk '{ add += $1; subs += $2; loc += $1 - $2 } END { printf "added: %s, removed: %s, total: %s\\n", add, subs, loc }' -; done`;
+} | awk '{ add += $1; subs += $2; loc += $1 + $2 } END { printf "added: %s, removed: %s, total: %s\\n", add, subs, loc }' -; done`;
 
 interface IUserContribution {
     name: string;

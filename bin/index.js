@@ -49,7 +49,7 @@ var IS_LOG = argv.log;
 var SEARCH_PATH = argv._.map(function (p) { return "'" + p + "'"; }).join(' ');
 var success = function (msg) { return console.warn("\u001B[32mSUCCESS: " + msg + "\u001B[39m"); };
 var error = function (msg) { return console.error("\u001B[31mERROR: " + msg + "\u001B[39m"); };
-var contributionCommand = "git log --since='<%= startDate %>' --until='<%= endDate %>' --format='%aN' | sort -u | while read name; do echo \"$name\"; git log --since='<%= startDate %>' --until='<%= endDate %>' --author=\"$name\" --numstat --pretty=tformat: --no-merges " + (SEARCH_PATH ? '-- ' + SEARCH_PATH : '') + " | awk '{ add += $1; subs += $2; loc += $1 - $2 } END { printf \"added: %s, removed: %s, total: %s\\n\", add, subs, loc }' -; done";
+var contributionCommand = "git log --since='<%= startDate %>' --until='<%= endDate %>' --format='%aN' | sort -u | while read name; do echo \"$name\"; git log --since='<%= startDate %>' --until='<%= endDate %>' --author=\"$name\" --numstat --pretty=tformat: --no-merges " + (SEARCH_PATH ? '-- ' + SEARCH_PATH : '') + " | awk '{ add += $1; subs += $2; loc += $1 + $2 } END { printf \"added: %s, removed: %s, total: %s\\n\", add, subs, loc }' -; done";
 function isExits(path) {
     return fs.existsSync(path);
 }
